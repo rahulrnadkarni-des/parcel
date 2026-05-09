@@ -59,10 +59,7 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
     setEditing(true);
     if (areas.length > 0) return;
     setLoadingOptions(true);
-    const [areasData, restaurantsData] = await Promise.all([
-      fetch("/api/areas").then((r) => r.json()),
-      fetch("/api/restaurants").then((r) => r.json()),
-    ]);
+    const { areas: areasData, restaurants: restaurantsData } = await fetch("/api/admin/options").then((r) => r.json());
     setAreas(areasData);
     setRestaurants(restaurantsData);
     setLoadingOptions(false);
