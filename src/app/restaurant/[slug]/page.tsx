@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { RestaurantDetailClient } from "@/components/RestaurantDetailClient";
+import { RestaurantPhotoGrid } from "@/components/RestaurantPhotoGrid";
 import { BackHomeLink } from "@/components/BackHomeLink";
 import { IconParcel } from "@/components/icons";
 
@@ -46,13 +47,7 @@ export default async function RestaurantPage({ params }: Props) {
 
       {/* Photo grid */}
       {count > 0 ? (
-        <div className="px-5 pb-5">
-          <div className="grid grid-cols-2 gap-2">
-            {restaurant.packagingEntries.map((entry) => (
-              <PhotoCard key={entry.id} entry={JSON.parse(JSON.stringify(entry))} />
-            ))}
-          </div>
-        </div>
+        <RestaurantPhotoGrid entries={JSON.parse(JSON.stringify(restaurant.packagingEntries))} />
       ) : (
         <div className="px-5 py-12 text-center border-t border-[#f1f1f1]">
           <div className="w-16 h-16 rounded-[12px] bg-[#f1f1f1] flex items-center justify-center mx-auto mb-4">
@@ -67,24 +62,6 @@ export default async function RestaurantPage({ params }: Props) {
 
       <RestaurantDetailClient restaurantName={restaurant.name} />
       <Footer />
-    </div>
-  );
-}
-
-interface Entry {
-  id: string;
-  photoUrl: string;
-  area: { name: string; slug: string };
-}
-
-function PhotoCard({ entry }: { entry: Entry }) {
-  return (
-    <div className="rounded-[8px] overflow-hidden bg-[#f1f1f1] border border-[rgba(0,0,0,0.1)]">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={entry.photoUrl} alt="Packaging" className="w-full object-cover" />
-      <div className="px-2.5 py-2">
-        <p className="text-[11px] font-medium text-[#777] tracking-[-0.22px]">{entry.area.name}</p>
-      </div>
     </div>
   );
 }
