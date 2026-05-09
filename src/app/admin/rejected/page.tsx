@@ -7,8 +7,8 @@ export default async function RejectedPage() {
   const entries = await db.packagingEntry.findMany({
     where: { status: "REJECTED" },
     include: {
-      restaurant: { select: { name: true, slug: true } },
-      area: { select: { name: true, slug: true } },
+      restaurant: { select: { id: true, name: true, slug: true } },
+      area: { select: { id: true, name: true, slug: true } },
     },
     orderBy: { reviewedAt: "desc" },
   });
