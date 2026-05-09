@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Area {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  packagingEntries PackagingEntry[]
+
+  @@map("areas")
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  packagingEntries PackagingEntry[]
+
+  @@map("restaurants")
+}
+
+model PackagingEntry {
+  id           String    @id @default(cuid())
+  restaurantId String
+  areaId       String
+  submittedAt  DateTime  @default(now())
+  reviewedAt   DateTime?
+
+  bagType          BagType
+  primaryColor     PackagingColor
+  secondaryColor   PackagingColor?
+  brandingStyle    BrandingStyle
+  distinctiveTags  String[]
+  freeNotes        String?
+
+  photoUrl       String
+
+  submitterEmail String?
+  status         SubmissionStatus @default(PENDING)
+  adminNotes     String?
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  area       Area       @relation(fields: [areaId], references: [id])
+
+  @@map("packaging_entries")
+}
+
+enum BagType {
+  PAPER_BAG
+  PLASTIC_BAG
+  CARDBOARD_BOX
+  THERMAL_BAG
+  ECO_BAG
+  MULTIPLE_PIECES
+}
+
+enum PackagingColor {
+  WHITE
+  BROWN
+  BLACK
+  RED
+  BLUE
+  GREEN
+  YELLOW
+  ORANGE
+  PURPLE
+  GREY
+  KRAFT
+  OTHER
+}
+
+enum BrandingStyle {
+  MINIMALIST
+  COLORFUL
+  PLAIN
+  PREMIUM
+  UNBRANDED
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
