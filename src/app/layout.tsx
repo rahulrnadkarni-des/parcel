@@ -16,9 +16,19 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Parcel. — Find your order at the pickup point",
     description: "A crowdsourced visual library of food delivery packaging for Bangalore.",
+    images: [{ url: "/assets/Social preview.png", width: 2400, height: 1200 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Parcel. — Find your order at the pickup point",
+    description: "A crowdsourced visual library of food delivery packaging for Bangalore.",
     images: ["/assets/Social preview.png"],
   },
-  icons: { icon: "/assets/Favicon.png" },
+  icons: {
+    icon: "/assets/Favicon.png",
+    apple: "/assets/Favicon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
