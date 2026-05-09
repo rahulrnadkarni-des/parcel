@@ -37,10 +37,10 @@ model PackagingEntry {
   submittedAt  DateTime  @default(now())
   reviewedAt   DateTime?
 
-  bagType          BagType
-  primaryColor     PackagingColor
+  bagType          BagType?
+  primaryColor     PackagingColor?
   secondaryColor   PackagingColor?
-  brandingStyle    BrandingStyle
+  brandingStyle    BrandingStyle?
   distinctiveTags  String[]
   freeNotes        String?
 
