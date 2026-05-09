@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { InfoModal } from "./InfoModal";
-import { IconSearch, IconArrowRight, IconParcel } from "./icons";
+import { IconSearch, IconClose, IconArrowRight, IconParcel } from "./icons";
 
 interface Restaurant {
   id: string;
@@ -111,8 +111,11 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
             placeholder="Search restaurant - Meghna foods, McDonalds"
             className="flex-1 h-full bg-transparent outline-none text-base text-[#222] placeholder:text-[#999] placeholder:leading-[1.4]"
           />
-          <button className="w-9 h-full bg-[#222] rounded-[10px] flex items-center justify-center shrink-0 drop-shadow-[0_4px_5px_rgba(0,0,0,0.15)]">
-            <IconSearch size={20} className="text-white" />
+          <button
+            onClick={() => { if (search) setSearch(""); }}
+            className="w-9 h-full bg-[#222] rounded-[10px] flex items-center justify-center shrink-0 drop-shadow-[0_4px_5px_rgba(0,0,0,0.15)]"
+          >
+            {search ? <IconClose size={18} className="text-white" /> : <IconSearch size={20} className="text-white" />}
           </button>
         </div>
       </div>
