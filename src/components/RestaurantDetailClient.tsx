@@ -15,7 +15,7 @@ export function RestaurantDetailClient({ restaurantName }: { restaurantName: str
           {/* Banner image */}
           <div className="aspect-[353/120] rounded-[12px] overflow-hidden border border-[rgba(0,0,0,0.15)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/Hero banner.png" alt="" className="w-full h-full object-cover" />
+            <img src="/assets/About info.png" alt="" className="w-full h-full object-cover" />
           </div>
           {/* Content */}
           <div className="flex flex-col gap-5">
