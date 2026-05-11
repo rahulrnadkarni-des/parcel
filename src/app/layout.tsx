@@ -3,6 +3,7 @@ import { Fira_Sans } from "next/font/google";
 import "./globals.css";
 import { NavigationProvider } from "@/lib/navigation";
 import { PageTransition } from "@/components/PageTransition";
+import { Analytics } from "@vercel/analytics/next";
 
 const firaSans = Fira_Sans({
   subsets: ["latin"],
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NavigationProvider>
           <PageTransition>{children}</PageTransition>
         </NavigationProvider>
+        <Analytics />
       </body>
     </html>
   );

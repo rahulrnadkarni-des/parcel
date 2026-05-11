@@ -72,6 +72,15 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
 
   useEffect(() => { setShowAll(false); }, [search, selectedArea]);
 
+  useEffect(() => {
+    if (sessionStorage.getItem("modalSeen")) return;
+    const t = setTimeout(() => {
+      setShowModal(true);
+      sessionStorage.setItem("modalSeen", "1");
+    }, 5000);
+    return () => clearTimeout(t);
+  }, []);
+
   const displayed = showAll ? restaurants : restaurants.slice(0, INITIAL_LIMIT);
   const hasMore = restaurants.length > INITIAL_LIMIT && !showAll;
   const isFiltered = !!search || !!selectedArea;
@@ -126,7 +135,7 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            placeholder="Search restaurant - Meghna foods, McDonalds"
+            placeholder="Search restaurant - Meghana foods, McDonalds"
             className="flex-1 h-full bg-transparent outline-none text-base text-[#222] placeholder:text-[#999] placeholder:leading-[1.4]"
           />
           <button
