@@ -9,7 +9,7 @@ export function Footer() {
         <p className="text-[12px] font-medium text-[#777] tracking-[-0.24px] leading-[1.6]">
           Created by{" "}
           <a
-            href="https://linkedin.com/in/rahulrnadkarni"
+            href="https://rahulrn.framer.website/"
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold text-[#222] underline underline-offset-2"
@@ -25,7 +25,7 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-5">
             <a
-              href="https://linkedin.com/in/rahulrnadkarni"
+              href="https://www.linkedin.com/in/rahul-r-nadkarni/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[12px] text-[#222] hover:opacity-70 transition-opacity"
@@ -35,7 +35,7 @@ export function Footer() {
               LinkedIn
             </a>
             <a
-              href="https://instagram.com"
+              href="https://instagram.com/rahulrnadkarni"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[12px] text-[#222] hover:opacity-70 transition-opacity"
@@ -45,7 +45,7 @@ export function Footer() {
               Instagram
             </a>
             <a
-              href="https://x.com"
+              href="https://x.com/rahulrnadkarni"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[12px] text-[#222] hover:opacity-70 transition-opacity"

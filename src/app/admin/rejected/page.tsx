@@ -1,9 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
-import { SubmissionCard } from "@/components/admin/SubmissionCard";
+import { ReviewedGridClient } from "@/components/admin/ReviewedGridClient";
 
-type EntryParam = Parameters<typeof SubmissionCard>[0]["entry"];
+type EntryParam = Parameters<typeof ReviewedGridClient>[0]["entries"][number];
 
 export default async function RejectedPage() {
   const entries = await db.packagingEntry.findMany({
@@ -21,15 +21,7 @@ export default async function RejectedPage() {
         <h1 className="text-xl font-semibold">Rejected</h1>
         <span className="text-sm text-stone-500">{entries.length} entries</span>
       </div>
-      {entries.length === 0 ? (
-        <p className="text-stone-400 text-sm">Nothing rejected.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {entries.map((entry) => (
-            <SubmissionCard key={entry.id} entry={entry as EntryParam} />
-          ))}
-        </div>
-      )}
+      <ReviewedGridClient entries={entries as EntryParam[]} />
     </div>
   );
 }

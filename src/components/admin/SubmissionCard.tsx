@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { BAG_TYPES, PACKAGING_COLORS, BRANDING_STYLES, DISTINCTIVE_TAGS } from "@/lib/constants";
+import { IconPencil, IconTrash2, IconClose, IconChevronDown, IconDownload, IconImageReplace } from "@/components/icons";
 
 interface Option { id: string; name: string; slug: string }
 
@@ -35,11 +36,15 @@ function label(arr: { value: string; label: string }[], val: string | null) {
 }
 
 export function SubmissionCard({ entry, showActions = false, onReviewed }: SubmissionCardProps) {
-  const [loading, setLoading] = useState<"approve" | "reject" | "save" | "delete" | null>(null);
+  const [loading, setLoading] = useState<"approve" | "reject" | "save" | "delete" | "replace" | null>(null);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [done, setDone] = useState(false);
-  const [localStatus, setLocalStatus] = useState(entry.status);
+  const [localPhotoUrl, setLocalPhotoUrl] = useState(entry.photoUrl);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [replaceError, setReplaceError] = useState<string | null>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   // Edit state
   const [editing, setEditing] = useState(false);
@@ -67,9 +72,15 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
 
   async function saveEdit() {
     setLoading("save");
-    const body: Record<string, string> = { areaId: editAreaId, restaurantId: editRestaurantId };
-    const currentName = restaurants.find((r) => r.id === editRestaurantId)?.name ?? localRestaurantName;
-    if (editRestaurantName !== currentName) body.restaurantName = editRestaurantName;
+    const body: Record<string, string> = { areaId: editAreaId };
+
+    if (editRestaurantId === "__new__") {
+      body.newRestaurantName = editRestaurantName;
+    } else {
+      body.restaurantId = editRestaurantId;
+      const currentName = restaurants.find((r) => r.id === editRestaurantId)?.name ?? localRestaurantName;
+      if (editRestaurantName !== currentName) body.restaurantName = editRestaurantName;
+    }
 
     await fetch(`/api/admin/submissions/${entry.id}`, {
       method: "PATCH",
@@ -92,15 +103,8 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
       body: JSON.stringify({ action, adminNotes }),
     });
     setLoading(null);
-    if (showActions) {
-      // Queue page: remove the card after review
-      setDone(true);
-      onReviewed?.(entry.id);
-    } else {
-      // Approved/Rejected pages: stay but reflect new status
-      setLocalStatus(action === "approve" ? "APPROVED" : "REJECTED");
-      setRejecting(false);
-    }
+    setDone(true);
+    onReviewed?.(entry.id);
   }
 
   async function deleteEntry() {
@@ -110,12 +114,93 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
     onReviewed?.(entry.id);
   }
 
+  async function downloadPhoto() {
+    const res = await fetch(localPhotoUrl);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${entry.restaurant.slug}-${entry.id}.jpg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function pickReplacementFile(file: File) {
+    setReplaceError(null);
+    setPendingFile(file);
+    setPendingPreview(URL.createObjectURL(file));
+    // reset input so the same file can be re-picked if cancelled
+    if (replaceInputRef.current) replaceInputRef.current.value = "";
+  }
+
+  function cancelReplace() {
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(null);
+    setPendingPreview(null);
+    setReplaceError(null);
+  }
+
+  async function confirmReplace() {
+    if (!pendingFile) return;
+    setLoading("replace");
+    setReplaceError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", pendingFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error ?? "Upload failed");
+      const { url } = uploadData;
+      if (!url) throw new Error("No URL returned");
+      const patchRes = await fetch(`/api/admin/submissions/${entry.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoUrl: url }),
+      });
+      if (!patchRes.ok) throw new Error("Save failed");
+      if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+      setLocalPhotoUrl(url);
+      setPendingFile(null);
+      setPendingPreview(null);
+    } catch (err) {
+      setReplaceError(err instanceof Error ? err.message : "Something went wrong");
+    }
+    setLoading(null);
+  }
+
   if (done) return null;
 
   return (
     <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
       <div className="relative aspect-[4/3] bg-stone-100">
-        <Image src={entry.photoUrl} alt="Packaging" fill className="object-cover" unoptimized />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={localPhotoUrl}
+          src={pendingPreview ?? localPhotoUrl}
+          alt="Packaging"
+          className="w-full h-full object-cover"
+        />
+        {loading === "replace" && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        <div className="absolute bottom-2 right-2">
+          <button
+            onClick={downloadPhoto}
+            title="Download photo"
+            className="w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-colors"
+          >
+            <IconDownload size={14} className="text-white" />
+          </button>
+        </div>
+        <input
+          ref={replaceInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && pickReplacementFile(e.target.files[0])}
+        />
       </div>
       <div className="p-4">
         {/* Header */}
@@ -129,16 +214,18 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
               {new Date(entry.submittedAt as string).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
             </span>
             <button
-              onClick={() => (editing ? setEditing(false) : openEdit())}
-              className="text-xs text-stone-400 hover:text-black transition-colors"
+              onClick={() => { if (editing) { cancelReplace(); setEditing(false); } else { openEdit(); } }}
+              title={editing ? "Close" : "Edit"}
+              className="text-stone-400 hover:text-black transition-colors"
             >
-              {editing ? "Close" : "Edit"}
+              {editing ? <IconClose size={15} /> : <IconPencil size={15} />}
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
-              className="text-xs text-red-400 hover:text-red-600 transition-colors"
+              title="Delete"
+              className="text-stone-400 hover:text-red-500 transition-colors"
             >
-              Delete
+              <IconTrash2 size={15} />
             </button>
           </div>
         </div>
@@ -160,47 +247,98 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
         {/* Edit panel */}
         {editing && (
           <div className="space-y-3 mb-3 pt-1">
+            {/* Replace photo */}
+            <div>
+              <label className="text-xs text-stone-400 block mb-1">Photo</label>
+              {pendingPreview ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-stone-600">Replace with this photo?</p>
+                  {replaceError && <p className="text-xs text-red-500">{replaceError}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={confirmReplace}
+                      disabled={loading === "replace"}
+                      className="flex-1 bg-black text-white text-sm py-1.5 rounded-lg disabled:opacity-40"
+                    >
+                      {loading === "replace" ? "Uploading…" : "Confirm & save"}
+                    </button>
+                    <button
+                      onClick={cancelReplace}
+                      disabled={loading === "replace"}
+                      className="flex-1 border border-stone-300 text-sm py-1.5 rounded-lg disabled:opacity-40"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => replaceInputRef.current?.click()}
+                  className="flex items-center gap-2 w-full border border-stone-200 rounded-lg px-3 py-1.5 text-sm text-stone-600 hover:border-stone-400 transition-colors"
+                >
+                  <IconImageReplace size={13} className="text-stone-400 shrink-0" />
+                  Replace photo
+                </button>
+              )}
+            </div>
             {loadingOptions ? (
               <p className="text-xs text-stone-400">Loading…</p>
             ) : (
               <>
                 <div>
                   <label className="text-xs text-stone-400 block mb-1">Restaurant</label>
-                  <select
-                    value={editRestaurantId}
-                    onChange={(e) => {
-                      setEditRestaurantId(e.target.value);
-                      const r = restaurants.find((r) => r.id === e.target.value);
-                      if (r) setEditRestaurantName(r.name);
-                    }}
-                    className="w-full border border-stone-200 rounded-lg px-3 py-1.5 text-sm bg-white"
-                  >
-                    {restaurants.map((r) => (
-                      <option key={r.id} value={r.id}>{r.name}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={editRestaurantId}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEditRestaurantId(val);
+                        if (val === "__new__") {
+                          setEditRestaurantName("");
+                        } else {
+                          const r = restaurants.find((r) => r.id === val);
+                          if (r) setEditRestaurantName(r.name);
+                        }
+                      }}
+                      className="w-full appearance-none border border-stone-200 rounded-lg px-3 pr-8 py-1.5 text-sm bg-white focus:outline-none focus:border-2 focus:border-black"
+                    >
+                      {restaurants.map((r) => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
+                      <option value="__new__">＋ New restaurant</option>
+                    </select>
+                    <IconChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-stone-400 block mb-1">Rename restaurant</label>
+                  <label className="text-xs text-stone-400 block mb-1">
+                    {editRestaurantId === "__new__" ? "New restaurant name" : "Rename restaurant"}
+                  </label>
                   <input
                     type="text"
                     value={editRestaurantName}
                     onChange={(e) => setEditRestaurantName(e.target.value)}
-                    className="w-full border border-stone-200 rounded-lg px-3 py-1.5 text-sm"
+                    placeholder={editRestaurantId === "__new__" ? "e.g. Meghana Foods" : ""}
+                    className="w-full border border-stone-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-2 focus:border-black"
                   />
-                  <p className="text-[10px] text-stone-400 mt-0.5">Applies to all entries for this restaurant</p>
+                  {editRestaurantId !== "__new__" && (
+                    <p className="text-[10px] text-stone-400 mt-0.5">Applies to all entries for this restaurant</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs text-stone-400 block mb-1">Area</label>
+                  <div className="relative">
                   <select
                     value={editAreaId}
                     onChange={(e) => setEditAreaId(e.target.value)}
-                    className="w-full border border-stone-200 rounded-lg px-3 py-1.5 text-sm bg-white"
+                    className="w-full appearance-none border border-stone-200 rounded-lg px-3 pr-8 py-1.5 text-sm bg-white focus:outline-none focus:border-2 focus:border-black"
                   >
                     {areas.map((a) => (
                       <option key={a.id} value={a.id}>{a.name}</option>
                     ))}
                   </select>
+                  <IconChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  </div>
                 </div>
               </>
             )}
@@ -241,7 +379,7 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
         {/* Status toggle for approved/rejected cards */}
         {!showActions && !editing && !confirmDelete && !rejecting && (
           <div className="flex gap-2">
-            {localStatus !== "APPROVED" && (
+            {entry.status !== "APPROVED" && (
               <button
                 onClick={() => review("approve")}
                 disabled={!!loading}
@@ -250,7 +388,7 @@ export function SubmissionCard({ entry, showActions = false, onReviewed }: Submi
                 {loading === "approve" ? "Moving…" : "Move to approved"}
               </button>
             )}
-            {localStatus !== "REJECTED" && (
+            {entry.status !== "REJECTED" && (
               <button
                 onClick={() => setRejecting(true)}
                 disabled={!!loading}

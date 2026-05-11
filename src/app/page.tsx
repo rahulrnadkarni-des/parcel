@@ -20,7 +20,7 @@ export default async function HomePage() {
       },
       orderBy: { name: "asc" },
     }),
-    db.area.findMany({ orderBy: { name: "asc" } }),
+    db.$queryRaw<{ id: string; name: string; slug: string }[]>`SELECT id, name, slug FROM areas ORDER BY display_order ASC, name ASC`,
     db.packagingEntry.count({ where: { status: "APPROVED" } }),
   ]);
 

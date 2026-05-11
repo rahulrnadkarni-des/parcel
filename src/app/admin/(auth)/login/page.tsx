@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-stone-50">
       <div className="w-full max-w-sm bg-white border border-stone-200 rounded-xl p-8">
-        <h1 className="text-xl font-semibold mb-1">Parcel Admin</h1>
+        <h1 className="text-xl font-black mb-1">Parcel.<span className="font-medium" style={{ color: "#777" }}> Admin</span></h1>
         <p className="text-stone-500 text-sm mb-6">Enter your password to continue.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input

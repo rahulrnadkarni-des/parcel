@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
@@ -39,6 +39,15 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
   const [loading, setLoading] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [slideIn, setSlideIn] = useState<"idle" | "start" | "done">("idle");
+
+  useLayoutEffect(() => {
+    if (sessionStorage.getItem("homeFromLeft") === "1") {
+      sessionStorage.removeItem("homeFromLeft");
+      setSlideIn("start");
+      requestAnimationFrame(() => requestAnimationFrame(() => setSlideIn("done")));
+    }
+  }, []);
 
   useEffect(() => {
     if (!search && !selectedArea) {
@@ -63,6 +72,15 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
 
   useEffect(() => { setShowAll(false); }, [search, selectedArea]);
 
+  useEffect(() => {
+    if (sessionStorage.getItem("modalSeen")) return;
+    const t = setTimeout(() => {
+      setShowModal(true);
+      sessionStorage.setItem("modalSeen", "1");
+    }, 5000);
+    return () => clearTimeout(t);
+  }, []);
+
   const displayed = showAll ? restaurants : restaurants.slice(0, INITIAL_LIMIT);
   const hasMore = restaurants.length > INITIAL_LIMIT && !showAll;
   const isFiltered = !!search || !!selectedArea;
@@ -71,7 +89,16 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
   const isEmpty = !loading && restaurants.length === 0;
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white relative">
+    <div
+      className="max-w-[480px] mx-auto min-h-screen bg-white relative"
+      style={
+        slideIn === "start"
+          ? { transform: "translateX(-100%)" }
+          : slideIn === "done"
+          ? { transform: "translateX(0)", transition: "transform 320ms ease-out" }
+          : undefined
+      }
+    >
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <div
@@ -93,7 +120,7 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
             }`}
           >
             <h1 className="text-[32px] font-black text-white leading-[1.3] text-shadow-hero">
-              Find your order at the pickup point.
+              Is that your food? Let's find out.
             </h1>
           </div>
         </div>
@@ -108,7 +135,7 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            placeholder="Search restaurant - Meghna foods, McDonalds"
+            placeholder="Search restaurant - Meghana foods, McDonalds"
             className="flex-1 h-full bg-transparent outline-none text-base text-[#222] placeholder:text-[#999] placeholder:leading-[1.4]"
           />
           <button
@@ -130,15 +157,17 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
                 <button
                   key={area.slug}
                   onClick={() => setSelectedArea(active ? null : area.slug)}
-                  className={`flex items-center gap-1.5 rounded-full whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2 rounded-full whitespace-nowrap transition-colors ${
                     active
-                      ? "bg-[#222] h-8 pl-3 pr-[6px] py-2 text-[12px] font-medium text-white"
+                      ? "bg-[#222] border border-transparent pl-3 pr-2 py-2 text-[12px] font-medium text-white"
                       : "bg-white border border-[#e5e5e5] px-3 py-2 text-[12px] text-[#999]"
                   }`}
                 >
                   {area.name}
                   {active && (
-                    <span className="bg-white/15 p-1 rounded-full leading-none text-[10px]">✕</span>
+                    <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                      <svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 1L6 6M6 1L1 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </span>
                   )}
                 </button>
               );
@@ -201,7 +230,7 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
         <div className="flex items-center justify-between mb-5">
           <p className="text-[20px] font-bold text-[#222] leading-[1.3] tracking-[-0.4px]">
             {search && !loading && restaurants.length === 0
-              ? `No results for "${search}"`
+              ? `Nothing yet for "${search}"`
               : search
               ? `Results for "${search}"`
               : selectedAreaName
@@ -224,7 +253,7 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
             </div>
             <div className="flex flex-wrap gap-1 justify-center mb-4">
               <p className="text-[14px] text-[#222] tracking-[-0.28px] leading-[1.3]">
-                Be the first to add a parcel for this location.
+                Be the first. It takes 30 seconds.
               </p>
               <button
                 onClick={() => setShowModal(true)}
@@ -238,22 +267,22 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
               className="inline-flex items-center justify-center gap-2 w-full h-12 bg-[#222] text-white rounded-[10px] text-base font-semibold tracking-[-0.16px] drop-shadow-[0_4px_5px_rgba(0,0,0,0.15)]"
             >
               <IconParcel size={16} />
-              Add your parcel
+              Add your bag
             </Link>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-x-3 gap-y-5">
-              {displayed.map((r) => (
-                <RestaurantCard key={r.id} restaurant={r} />
-              ))}
-              {loading &&
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="aspect-[160/90] rounded-[8px] bg-[#f1f1f1]" />
-                    <div className="h-3 bg-[#f1f1f1] rounded mt-2 w-3/4" />
-                  </div>
-                ))}
+              {loading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="aspect-[160/90] rounded-[8px] bg-[#f1f1f1]" />
+                      <div className="h-3 bg-[#f1f1f1] rounded mt-2 w-3/4" />
+                    </div>
+                  ))
+                : displayed.map((r) => (
+                    <RestaurantCard key={r.id} restaurant={r} />
+                  ))}
             </div>
 
             {hasMore && (
@@ -302,7 +331,7 @@ export function HomeClient({ initialRestaurants, areas, initialTotalPackages }: 
               className="flex items-center justify-center gap-2 w-full h-12 bg-[#222] text-white rounded-[10px] text-base font-semibold tracking-[-0.16px] drop-shadow-[0_4px_5px_rgba(0,0,0,0.15)]"
             >
               <IconParcel size={16} />
-              Add your parcel
+              Add your bag
             </Link>
           </div>
         </div>

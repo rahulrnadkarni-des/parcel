@@ -66,14 +66,25 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const { restaurantId, restaurantName, areaId } = await req.json();
+  const { restaurantId, restaurantName, areaId, newRestaurantName, photoUrl } = await req.json();
 
   const entry = await db.packagingEntry.findUnique({ where: { id } });
   if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const data: Record<string, string> = {};
   if (areaId) data.areaId = areaId;
-  if (restaurantId) data.restaurantId = restaurantId;
+  if (photoUrl) data.photoUrl = photoUrl;
+
+  if (newRestaurantName) {
+    const base = newRestaurantName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    let slug = base;
+    let n = 1;
+    while (await db.restaurant.findUnique({ where: { slug } })) slug = `${base}-${n++}`;
+    const created = await db.restaurant.create({ data: { name: newRestaurantName, slug } });
+    data.restaurantId = created.id;
+  } else if (restaurantId) {
+    data.restaurantId = restaurantId;
+  }
 
   const updated = await db.packagingEntry.update({
     where: { id },
@@ -84,7 +95,7 @@ export async function PATCH(
     },
   });
 
-  if (restaurantName) {
+  if (restaurantName && !newRestaurantName) {
     await db.restaurant.update({
       where: { id: updated.restaurantId },
       data: { name: restaurantName },

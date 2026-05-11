@@ -30,7 +30,7 @@ export function Navbar({ variant = "white" }: { variant?: NavbarVariant }) {
           }`}
         >
           <IconParcel size={16} />
-          Add parcel
+          Add your bag
         </Link>
       )}
     </nav>
