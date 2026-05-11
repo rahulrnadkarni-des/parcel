@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Area {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  name         String   @unique
+  slug         String   @unique
+  createdAt    DateTime @default(now())
+  displayOrder Int      @default(99) @map("display_order")
 
   packagingEntries PackagingEntry[]
 

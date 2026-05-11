@@ -8,6 +8,10 @@ cloudinary.config({
 });
 
 export async function POST(req: NextRequest) {
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    return NextResponse.json({ error: "Cloudinary not configured" }, { status: 500 });
+  }
+
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
 
@@ -24,14 +28,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "File too large (max 10 MB)" }, { status: 400 });
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
+  try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-  const result = await cloudinary.uploader.upload(base64, {
-    folder: "parcel/submissions",
-    transformation: [{ width: 1200, crop: "limit", quality: "auto:good" }],
-  });
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "parcel/submissions",
+      transformation: [{ width: 1200, crop: "limit", quality: "auto:good" }],
+    });
 
-  return NextResponse.json({ url: result.secure_url });
+    return NextResponse.json({ url: result.secure_url });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[upload] Cloudinary error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

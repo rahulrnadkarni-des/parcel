@@ -30,6 +30,7 @@ export default async function RestaurantPage({ params }: Props) {
   const count = restaurant.packagingEntries.length;
 
   return (
+    <div id="page-slide-root" className="fixed inset-0 bg-white overflow-y-auto">
     <div className="max-w-[480px] mx-auto min-h-screen bg-white">
       <Navbar variant="white" />
 
@@ -62,6 +63,7 @@ export default async function RestaurantPage({ params }: Props) {
 
       <RestaurantDetailClient restaurantName={restaurant.name} />
       <Footer />
+    </div>
     </div>
   );
 }

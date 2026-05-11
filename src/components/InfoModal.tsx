@@ -18,7 +18,7 @@ const STEPS = [
   {
     label: "Step 2",
     title: "Which restaurant, though?",
-    body: "Search for your restaurant. If not listed, add it. Someone's got to be first.",
+    body: "Search for your restaurant. If not listed, add them. Someone's got to be first.",
     image: "/assets/Step 2.png",
   },
   {
@@ -30,7 +30,7 @@ const STEPS = [
   {
     label: "Step 4",
     title: "Just chill",
-    body: "We'll scan for accidental secrets. If it's just a boring bag, it goes live in 24 hours.",
+    body: "We'll scan for accidental secrets. If just a boring bag, it goes live in 24 hours.",
     image: "/assets/Step 4.png",
   },
 ];
@@ -79,16 +79,16 @@ export function InfoModal({ onClose }: InfoModalProps) {
           </div>
 
           {/* Heading */}
-          <h2 className="text-[24px] font-black text-[#222] leading-[1.3] px-1 mb-4">
+          <h2 className="text-[24px] font-black text-[#222] leading-[1.3] px-3 mb-4">
             How to add your parcel
           </h2>
 
           {/* Steps */}
-          <div className="px-2 pb-3">
+          <div className="px-3 pb-3">
             {STEPS.map((step, i) => {
               const isLast = i === STEPS.length - 1;
               return (
-                <div key={i} className="flex gap-3 px-3">
+                <div key={i} className="flex gap-3">
                   {/* Icon column */}
                   <div className="flex flex-col items-center w-16 shrink-0 pb-1">
                     <div className="w-16 h-16 rounded-[8px] overflow-hidden shrink-0">
@@ -118,14 +118,14 @@ export function InfoModal({ onClose }: InfoModalProps) {
 
         {/* CTA button */}
         <div className="shrink-0">
-          <div className="pb-12 pt-5 px-3">
+          <div className="pb-12 pt-5 px-5">
             <Link
               href="/submit"
               onClick={handleClose}
               className="flex items-center justify-center gap-2 w-full h-12 bg-[#222] text-white rounded-[10px] text-base font-semibold tracking-[-0.16px] drop-shadow-[0_4px_5px_rgba(0,0,0,0.15)]"
             >
               <IconParcel size={16} />
-              Add your parcel
+              Add your bag
             </Link>
           </div>
         </div>

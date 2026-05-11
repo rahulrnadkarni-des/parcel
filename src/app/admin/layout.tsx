@@ -6,7 +6,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-stone-50">
       <header className="bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between">
-        <span className="font-semibold text-sm">Parcel Admin</span>
+        <span className="font-black text-sm">Parcel.<span className="font-medium" style={{ color: "#777" }}> Admin</span></span>
         <nav className="flex gap-6 text-sm text-stone-500">
           <Link href="/admin/queue" className="hover:text-black">Queue</Link>
           <Link href="/admin/approved" className="hover:text-black">Approved</Link>

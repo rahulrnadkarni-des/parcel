@@ -21,10 +21,10 @@ export function RestaurantDetailClient({ restaurantName }: { restaurantName: str
           <div className="flex flex-col gap-5">
             <div>
               <h3 className="text-[20px] font-black text-[#222] leading-[1.3] mb-2">
-                Doesn&apos;t match your parcel?
+                Yours looks different?
               </h3>
               <p className="text-base text-[#777] leading-[1.4]">
-                Share it here to help others recognize it too.
+                Add it. Every variant helps someone.
               </p>
               <button
                 onClick={() => setShowModal(true)}
@@ -39,7 +39,7 @@ export function RestaurantDetailClient({ restaurantName }: { restaurantName: str
               className="flex items-center justify-center gap-2 w-full h-12 bg-[#222] text-white rounded-[10px] text-base font-semibold tracking-[-0.16px] drop-shadow-[0_4px_5px_rgba(0,0,0,0.15)]"
             >
               <IconParcel size={16} />
-              Add your parcel
+              Add your bag
             </Link>
           </div>
         </div>

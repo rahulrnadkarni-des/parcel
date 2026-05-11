@@ -30,15 +30,17 @@ export function RestaurantPhotoGrid({ entries }: { entries: Entry[] }) {
                 <button
                   key={area.slug}
                   onClick={() => setSelectedArea(active ? null : area.slug)}
-                  className={`flex items-center gap-1.5 rounded-full whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2 rounded-full whitespace-nowrap transition-colors ${
                     active
-                      ? "bg-[#222] h-8 pl-3 pr-[6px] py-2 text-[12px] font-medium text-white"
+                      ? "bg-[#222] border border-transparent pl-3 pr-2 py-2 text-[12px] font-medium text-white"
                       : "bg-white border border-[#e5e5e5] px-3 py-2 text-[12px] text-[#999]"
                   }`}
                 >
                   {area.name}
                   {active && (
-                    <span className="bg-white/15 p-1 rounded-full leading-none text-[10px]">✕</span>
+                    <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                      <svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 1L6 6M6 1L1 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </span>
                   )}
                 </button>
               );
